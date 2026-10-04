@@ -1,4 +1,4 @@
-# Codex Reset Notice
+# Codex CLI Reset Notice
 
 Uses the public [codex-reset.com API](https://codex-reset.com/developers) to show
 a single visible CLI notice on startup, resume, and `/clear`. Compaction does
@@ -19,20 +19,19 @@ Native Windows is not supported; use WSL. No Python packages or API key needed.
 Download the release ZIP, unzip it, and run these commands from its parent:
 
 ```sh
-codex plugin marketplace add ./codex-reset-notice
-codex plugin add codex-reset-notice@codex-reset-notices
+codex plugin marketplace add ./codex-cli-reset-notice
+codex plugin add codex-cli-reset-notice@codex-cli-reset-notices
 ```
 
 Restart Codex and use `/hooks` to review and trust **only** the new reset hook.
 Make sure hooks are enabled (`[features] hooks = true` in Codex config).
 Plugin hooks use `${PLUGIN_ROOT}` so they work regardless of installation path.
 
-Once this repository is hosted on GitHub, users can install without downloading
-an archive. Replace `OWNER/REPO` with its actual repository name:
+Once published to GitHub, users can install without downloading an archive:
 
 ```sh
-codex plugin marketplace add OWNER/REPO
-codex plugin add codex-reset-notice@codex-reset-notices
+codex plugin marketplace add pkarstaedt/codex-cli-reset-notice
+codex plugin add codex-cli-reset-notice@codex-cli-reset-notices
 ```
 
 The repository includes `.agents/plugins/marketplace.json` and the portable
@@ -42,14 +41,14 @@ this package has not been submitted to the public OpenAI directory.
 To update from a Git marketplace, refresh it and reinstall the plugin:
 
 ```sh
-codex plugin marketplace upgrade codex-reset-notices
-codex plugin add codex-reset-notice@codex-reset-notices
+codex plugin marketplace upgrade codex-cli-reset-notices
+codex plugin add codex-cli-reset-notice@codex-cli-reset-notices
 ```
 
 To uninstall the plugin:
 
 ```sh
-codex plugin remove codex-reset-notice@codex-reset-notices
+codex plugin remove codex-cli-reset-notice@codex-cli-reset-notices
 ```
 
 Use one installation method. If switching from the standalone hook below,
@@ -125,7 +124,7 @@ python3 -m unittest -v
 python3 build_release.py
 ```
 
-This creates `dist/codex-reset-notice-0.1.0.zip` and its SHA-256 file. The archive
+This creates `dist/codex-cli-reset-notice-0.1.0.zip` and its SHA-256 file. The archive
 contains a single plugin directory, source, tests, marketplace, instructions,
 and license. It excludes caches, local installations, trust records, and secrets.
 The allowlisted build is reproducible. Bump `plugin.json`'s version for releases.

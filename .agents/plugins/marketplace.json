@@ -1,12 +1,12 @@
 {
-  "name": "codex-reset-notices",
+  "name": "codex-cli-reset-notices",
   "plugins": [
     {
-      "name": "codex-reset-notice",
+      "name": "codex-cli-reset-notice",
       "source": {"source": "local", "path": "./"},
       "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
       "category": "Productivity",
-      "interface": {"displayName": "Codex Reset Notice"}
+      "interface": {"displayName": "Codex CLI Reset Notice"}
     }
   ]
 }
