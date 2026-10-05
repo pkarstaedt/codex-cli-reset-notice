@@ -1,0 +1,17 @@
+{
+  "name": "codex-cli-reset-notice",
+  "version": "0.1.1",
+  "description": "Show announced global Codex resets and recent completed resets at session start, using codex-reset.com.",
+  "license": "MIT",
+  "keywords": ["codex", "hooks", "usage", "reset"],
+  "repository": "https://github.com/pkarstaedt/codex-cli-reset-notice",
+  "author": {"name": "Philipp Karstaedt", "url": "https://github.com/pkarstaedt"},
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "Codex CLI Reset Notice",
+    "shortDescription": "Global reset session notices",
+    "longDescription": "A session-start notice for official reset announcements and resets completed within 72 hours. Data from codex-reset.com. No API key or model call required.",
+    "category": "Productivity",
+    "capabilities": ["Hooks"]
+  }
+}

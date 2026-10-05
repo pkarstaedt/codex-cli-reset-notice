@@ -4,6 +4,7 @@ import io
 import json
 from pathlib import Path
 import subprocess
+import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -100,6 +101,11 @@ class NoticeTests(unittest.TestCase):
 
 
 class RuntimeTests(unittest.TestCase):
+    @unittest.skipUnless(shutil.which("codex"), "Codex CLI is required for hook discovery verification")
+    def test_native_plugin_hook_discovery(self):
+        from verify_plugin import verify
+        verify(str(Path(__file__).resolve().parent))
+
     def test_fetch_stale_malformed_and_rate_limited(self):
         now = datetime.now(timezone.utc)
         class Response:

@@ -34,8 +34,8 @@ codex plugin marketplace add pkarstaedt/codex-cli-reset-notice
 codex plugin add codex-cli-reset-notice@codex-cli-reset-notices
 ```
 
-The repository includes `.agents/plugins/marketplace.json` and the portable
-`plugin.json` manifest. The plugin is available through that marketplace;
+The repository includes `.agents/plugins/marketplace.json` and the Codex compatibility
+`.codex-plugin/plugin.json` manifest. The plugin is available through that marketplace;
 this package has not been submitted to the public OpenAI directory.
 
 To update from a Git marketplace, refresh it and reinstall the plugin:
@@ -121,13 +121,14 @@ account data, or credentials; it is a GET to the forecast endpoint.
 
 ```sh
 python3 -m unittest -v
+python3 verify_plugin.py
 python3 build_release.py
 ```
 
-This creates `dist/codex-cli-reset-notice-0.1.0.zip` and its SHA-256 file. The archive
+This creates `dist/codex-cli-reset-notice-0.1.1.zip` and its SHA-256 file. The archive
 contains a single plugin directory, source, tests, marketplace, instructions,
 and license. It excludes caches, local installations, trust records, and secrets.
-The allowlisted build is reproducible. Bump `plugin.json`'s version for releases.
+The allowlisted build is reproducible. Bump `.codex-plugin/plugin.json`'s version for releases.
 
 A local marketplace installation copies the package into Codex's plugin cache.
 To distribute changes, build a new archive (or push the source repo), refresh
@@ -136,3 +137,22 @@ remain available for later refreshes.
 
 Official references: [plugin packaging](https://developers.openai.com/plugins/build/plugins)
 and [hook behavior and trust](https://learn.chatgpt.com/docs/hooks).
+
+
+## Hook missing from /hooks on 0.1.0
+
+Version 0.1.0 used the portable manifest. Codex CLI 0.160.0 installs that format
+but does not discover this package's hooks. Version 0.1.1 uses the supported
+Codex compatibility manifest and is verified through the `hooks/list` API.
+
+Upgrade the marketplace and reinstall:
+
+```sh
+codex plugin marketplace upgrade codex-cli-reset-notices
+codex plugin add codex-cli-reset-notice@codex-cli-reset-notices
+codex --no-daemon --yolo
+```
+
+Then open `/hooks`, select SessionStart, and trust the reset hook. The
+`--no-daemon` flag ensures the new session uses fresh plugin configuration
+without interrupting other tasks in an existing daemon.

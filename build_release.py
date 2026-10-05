@@ -6,13 +6,13 @@ from pathlib import Path
 import zipfile
 
 ROOT = Path(__file__).resolve().parent
-FILES = ["plugin.json", ".agents/plugins/marketplace.json", "hooks/hooks.json",
+FILES = [".codex-plugin/plugin.json", ".agents/plugins/marketplace.json", "hooks/hooks.json",
          "codex_reset.py", "install.py", "test_codex_reset.py", "build_release.py",
-         "README.md", "LICENSE", ".gitignore"]
+         "verify_plugin.py", "README.md", "LICENSE", ".gitignore"]
 
 
 def build():
-    manifest = json.loads((ROOT / "plugin.json").read_text())
+    manifest = json.loads((ROOT / ".codex-plugin/plugin.json").read_text())
     name, version = manifest["name"], manifest["version"]
     destination = ROOT / "dist"
     destination.mkdir(exist_ok=True)
