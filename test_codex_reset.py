@@ -25,7 +25,7 @@ class NoticeTests(unittest.TestCase):
     def signal(self, **changes):
         signal = {"at": "2026-10-04T01:00:00Z", "window": {
             "start_at": "2026-10-05T08:00:00Z", "end_at": "2026-10-05T10:00:00Z",
-            "target_at": "2026-10-05T10:00:00Z", "label": "tomorrow"}}
+            "target_at": "2026-10-05T10:00:00Z", "label": "scheduled time"}}
         signal.update(changes)
         self.data["official_signal"] = signal
         return signal
@@ -55,7 +55,26 @@ class NoticeTests(unittest.TestCase):
 
     def test_upcoming_wins(self):
         self.signal()
-        self.assertEqual(self.message(), "Global Codex usage reset announced for 05-10 on 04-10.")
+        self.assertEqual(self.message(), "Global Codex usage reset announced for 05-10 10:00 UTC; announced on 04-10.")
+
+    def test_deadline_time(self):
+        self.signal()["window"]["target_kind"] = "deadline"
+        self.assertEqual(self.message(), "Global Codex usage reset announced to arrive by 05-10 10:00 UTC; announced on 04-10.")
+
+    def test_default_timezone_is_utc(self):
+        with patch.dict("os.environ", {"CODEX_RESET_TIMEZONE": ""}):
+            self.assertEqual(hook.day(hook.timestamp("2026-10-02T23:30:00Z")), "02-10")
+            self.assertEqual(hook.date_time(hook.timestamp("2026-10-02T23:30:00Z")), "02-10 23:30 UTC")
+
+    def test_date_only_window_keeps_date_only(self):
+        window = self.signal()["window"]
+        window.pop("target_at")
+        window["label"] = "later today"
+        self.assertEqual(self.message(), "Global Codex usage reset announced for 05-10; announced on 04-10.")
+
+    def test_same_day_timed_window(self):
+        self.signal()["window"].pop("target_at")
+        self.assertEqual(self.message(), "Global Codex usage reset announced for 05-10 08:00 UTC to 05-10 10:00 UTC; announced on 04-10.")
 
     def test_expired_is_not_completion(self):
         s = self.signal()
@@ -80,14 +99,15 @@ class NoticeTests(unittest.TestCase):
         s = self.signal()
         s["window"].pop("target_at")
         s["window"]["start_at"] = "2026-10-04T21:00:00Z"
-        self.assertEqual(self.message(), "Global Codex usage reset announced for 04-10 to 05-10 on 04-10.")
+        self.assertEqual(self.message(), "Global Codex usage reset announced for 04-10 21:00 UTC to 05-10 10:00 UTC; announced on 04-10.")
 
     def test_berlin_midnight_and_dst(self):
         for raw, expected in [("2026-10-02T23:00:00Z", "03-10"),
                               ("2026-10-25T00:30:00Z", "25-10"),
                               ("2026-10-25T01:30:00Z", "25-10"),
                               ("2026-12-31T23:30:00Z", "01-01")]:
-            self.assertEqual(hook.day(hook.timestamp(raw)), expected)
+            with patch.dict("os.environ", {"CODEX_RESET_TIMEZONE": "Europe/Berlin"}):
+                self.assertEqual(hook.day(hook.timestamp(raw)), expected)
 
     def test_timezone_override(self):
         with patch.dict("os.environ", {"CODEX_RESET_TIMEZONE": "America/New_York"}):
@@ -96,7 +116,7 @@ class NoticeTests(unittest.TestCase):
             s["window"].pop("target_at")
             s["window"]["start_at"] = "2026-10-05T02:00:00Z"
             s["window"]["end_at"] = "2026-10-05T05:00:00Z"
-            self.assertEqual(self.message(), "Global Codex usage reset announced for 04-10 to 05-10 on 03-10.")
+            self.assertEqual(self.message(), "Global Codex usage reset announced for 04-10 22:00 EDT to 05-10 01:00 EDT; announced on 03-10.")
 
     def test_banked_and_probability_ignored(self):
         self.data.update(probabilities={"rounded_24h": 99}, banked_state="available")

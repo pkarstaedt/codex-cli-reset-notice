@@ -16,7 +16,7 @@ from zoneinfo import ZoneInfo
 
 API = "https://codex-reset.com/api/forecast"
 USER_AGENT = "codex-reset-session-hook/1.0 (personal CLI integration; source https://codex-reset.com/)"
-ZONE = ZoneInfo("Europe/Berlin")
+ZONE = ZoneInfo("UTC")
 UNAVAILABLE = "Cannot get usage reset news from https://codex-reset.com"
 SOURCE = " Source: https://codex-reset.com/"
 
@@ -37,6 +37,10 @@ def display_zone():
 
 def day(value):
     return value.astimezone(display_zone()).strftime("%d-%m")
+
+
+def date_time(value):
+    return value.astimezone(display_zone()).strftime("%d-%m %H:%M %Z")
 
 
 def notice(data, now):
@@ -69,13 +73,18 @@ def notice(data, now):
                     return f"Global Codex usage reset announced on {day(announced)}; timing unspecified." + SOURCE
                 target = timestamp(window.get("target_at") or window["end_at"])
                 if window.get("target_at"):
-                    target_day = day(target)
+                    if window.get("target_kind") == "deadline":
+                        return f"Global Codex usage reset announced to arrive by {date_time(target)}; announced on {day(announced)}." + SOURCE
+                    target_info = date_time(target)
                 else:
                     start = timestamp(window.get("start_at"))
                     if start > end:
                         raise ValueError("Inverted window")
-                    target_day = day(end) if start.astimezone(display_zone()).date() == end.astimezone(display_zone()).date() else f"{day(start)} to {day(end)}"
-                return f"Global Codex usage reset announced for {target_day} on {day(announced)}." + SOURCE
+                    if label.strip().lower() in {"today", "tomorrow", "later today", "later tomorrow", "next week"}:
+                        target_info = day(end) if start.astimezone(display_zone()).date() == end.astimezone(display_zone()).date() else f"{day(start)} to {day(end)}"
+                    else:
+                        target_info = f"{date_time(start)} to {date_time(end)}"
+                return f"Global Codex usage reset announced for {target_info}; announced on {day(announced)}." + SOURCE
     if last and now - last <= timedelta(hours=72):
         return f"Last Codex usage reset was on {day(last)}."
     return "No Codex usage reset planned."

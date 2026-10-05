@@ -1,6 +1,6 @@
 {
   "name": "codex-cli-reset-notice",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Show announced global Codex resets and recent completed resets at session start, using codex-reset.com.",
   "license": "MIT",
   "keywords": ["codex", "hooks", "usage", "reset"],

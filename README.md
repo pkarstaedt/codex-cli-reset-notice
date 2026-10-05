@@ -60,18 +60,21 @@ codex plugin marketplace remove codex-cli-reset-notices
 
 | Case | Notice |
 | --- | --- |
-| Upcoming reset | `Global Codex usage reset announced for dd-mm on dd-mm. Source: https://codex-reset.com/` |
-| Upcoming reset spanning dates | `Global Codex usage reset announced for dd-mm to dd-mm on dd-mm. Source: https://codex-reset.com/` |
+| Upcoming reset | `Global Codex usage reset announced for dd-mm HH:MM UTC; announced on dd-mm. Source: https://codex-reset.com/` |
+| Upcoming timed window | `Global Codex usage reset announced for dd-mm HH:MM UTC to dd-mm HH:MM UTC; announced on dd-mm. Source: https://codex-reset.com/` |
+| Deadline | `Global Codex usage reset announced to arrive by dd-mm HH:MM UTC; announced on dd-mm. Source: https://codex-reset.com/` |
 | Announcement without timing | `Global Codex usage reset announced on dd-mm; timing unspecified. Source: https://codex-reset.com/` |
 | Last reset within 72 hours, none upcoming | `Last Codex usage reset was on dd-mm.` |
 | None upcoming or recently completed | `No Codex usage reset planned.` |
 | Failed or unavailable check | `Cannot get usage reset news from https://codex-reset.com` |
 
-For upcoming resets, the final “on dd-mm” is the announcement date. Dates default
-to Europe/Berlin. To use another timezone, set `CODEX_RESET_TIMEZONE`:
+For upcoming resets, “announced on dd-mm” is the announcement date. Dates and
+24-hour times default to UTC. Deadlines use “by”; timed windows show both bounds.
+Date-only announcements stay date-only; unspecified timing is not inferred from
+forecast probabilities. To use another timezone, set `CODEX_RESET_TIMEZONE`:
 
 ```sh
-CODEX_RESET_TIMEZONE=America/New_York codex
+CODEX_RESET_TIMEZONE=Europe/Berlin codex
 ```
 
 Forecast probabilities, hints, banked reset grants, and personal account quotas
