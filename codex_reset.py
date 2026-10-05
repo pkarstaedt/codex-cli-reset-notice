@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 API = "https://codex-reset.com/api/forecast"
 USER_AGENT = "codex-reset-session-hook/1.0 (personal CLI integration; source https://codex-reset.com/)"
 ZONE = ZoneInfo("Europe/Berlin")
-UNAVAILABLE = "Reset status unavailable."
+UNAVAILABLE = "Cannot get usage reset news from https://codex-reset.com"
 SOURCE = " Source: https://codex-reset.com/"
 
 
@@ -59,14 +59,14 @@ def notice(data, now):
         if signal.get("active") is not False and (last is None or announced > last):
             window = signal.get("window")
             if window is None:
-                return f"Global reset announced on {day(announced)}; timing unspecified." + SOURCE
+                return f"Global Codex usage reset announced on {day(announced)}; timing unspecified." + SOURCE
             if not isinstance(window, dict):
                 raise ValueError("Unsupported announcement window")
             end = timestamp(window.get("end_at"))
             if end > now:
                 label = str(window.get("label", ""))
                 if "timing unspecified" in label.lower():
-                    return f"Global reset announced on {day(announced)}; timing unspecified." + SOURCE
+                    return f"Global Codex usage reset announced on {day(announced)}; timing unspecified." + SOURCE
                 target = timestamp(window.get("target_at") or window["end_at"])
                 if window.get("target_at"):
                     target_day = day(target)
@@ -75,10 +75,10 @@ def notice(data, now):
                     if start > end:
                         raise ValueError("Inverted window")
                     target_day = day(end) if start.astimezone(display_zone()).date() == end.astimezone(display_zone()).date() else f"{day(start)} to {day(end)}"
-                return f"Global reset announced for {target_day} on {day(announced)}." + SOURCE
+                return f"Global Codex usage reset announced for {target_day} on {day(announced)}." + SOURCE
     if last and now - last <= timedelta(hours=72):
-        return f"Last reset was on {day(last)}." + SOURCE
-    return "No reset planned." + SOURCE
+        return f"Last Codex usage reset was on {day(last)}."
+    return "No Codex usage reset planned."
 
 
 def write_json(path, data):

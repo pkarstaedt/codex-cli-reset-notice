@@ -75,15 +75,15 @@ See [Codex hook documentation](https://learn.chatgpt.com/docs/hooks).
 
 Messages, in priority order:
 
-- `Global reset announced for dd-mm on dd-mm.` An unexpired official window
+- `Global Codex usage reset announced for dd-mm on dd-mm.` An unexpired official window
   newer than the last completed reset; windows spanning local dates show a range.
-- `Global reset announced on dd-mm; timing unspecified.` An official signal
+- `Global Codex usage reset announced on dd-mm; timing unspecified.` An official signal
   with no usable timing.
-- `Last reset was on dd-mm.` The latest reset was within the previous 72 hours.
-- `No reset planned.` No current official signal or recent completed reset.
-- `Reset status unavailable.` Network failure, stale data, or unsupported payload.
+- `Last Codex usage reset was on dd-mm.` The latest reset was within the previous 72 hours.
+- `No Codex usage reset planned.` No current official signal or recent completed reset.
+- `Cannot get usage reset news from https://codex-reset.com` Network failure, stale data, or unsupported payload.
 
-Successful notices include the source URL. Forecast probabilities, hints,
+Only upcoming announcement notices append the source URL. Forecast probabilities, hints,
 banked resets, and personal account quotas do not affect the message. An expired
 announcement does not establish that a reset completed. All classification
 comes from the independent tracker; there is no OpenAI account access or LLM call.
@@ -115,7 +115,7 @@ Removal preserves all other hooks. The cache can optionally be deleted separatel
 
 Publish the source directory as a Git repository, or share the generated ZIP.
 The license is MIT; third-party reset data remains subject to the
-[API provider's terms](https://codex-reset.com/developers). Notices include credit
+[API provider's terms](https://codex-reset.com/developers). Upcoming announcement notices include credit
 and requests identify the project. Network traffic contains no session input,
 account data, or credentials; it is a GET to the forecast endpoint.
 
@@ -125,7 +125,7 @@ python3 verify_plugin.py
 python3 build_release.py
 ```
 
-This creates `dist/codex-cli-reset-notice-0.1.1.zip` and its SHA-256 file. The archive
+This creates `dist/codex-cli-reset-notice-0.1.2.zip` and its SHA-256 file. The archive
 contains a single plugin directory, source, tests, marketplace, instructions,
 and license. It excludes caches, local installations, trust records, and secrets.
 The allowlisted build is reproducible. Bump `.codex-plugin/plugin.json`'s version for releases.

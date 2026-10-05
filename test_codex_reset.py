@@ -31,46 +31,56 @@ class NoticeTests(unittest.TestCase):
         return signal
 
     def test_recent_reset(self):
-        self.assertEqual(self.message(), "Last reset was on 02-10.")
+        self.assertEqual(self.message(), "Last Codex usage reset was on 02-10.")
+
+    def test_source_only_for_upcoming_announcements(self):
+        self.assertEqual(hook.notice(self.data, self.now), "Last Codex usage reset was on 02-10.")
+        self.data["last_reset_at"] = None
+        self.assertEqual(hook.notice(self.data, self.now), "No Codex usage reset planned.")
+        self.signal()
+        self.assertTrue(hook.notice(self.data, self.now).endswith(hook.SOURCE))
+        self.signal(window=None)
+        self.assertTrue(hook.notice(self.data, self.now).endswith(hook.SOURCE))
+        self.assertEqual(hook.UNAVAILABLE, "Cannot get usage reset news from https://codex-reset.com")
 
     def test_exact_72_hours(self):
         self.data["last_reset_at"] = (self.now - timedelta(hours=72)).isoformat()
-        self.assertTrue(self.message().startswith("Last reset"))
+        self.assertTrue(self.message().startswith("Last Codex usage reset"))
         self.data["last_reset_at"] = (self.now - timedelta(hours=72, seconds=1)).isoformat()
-        self.assertEqual(self.message(), "No reset planned.")
+        self.assertEqual(self.message(), "No Codex usage reset planned.")
 
     def test_no_reset(self):
         self.data["last_reset_at"] = None
-        self.assertEqual(self.message(), "No reset planned.")
+        self.assertEqual(self.message(), "No Codex usage reset planned.")
 
     def test_upcoming_wins(self):
         self.signal()
-        self.assertEqual(self.message(), "Global reset announced for 05-10 on 04-10.")
+        self.assertEqual(self.message(), "Global Codex usage reset announced for 05-10 on 04-10.")
 
     def test_expired_is_not_completion(self):
         s = self.signal()
         s["window"]["end_at"] = self.now.isoformat()
-        self.assertEqual(self.message(), "Last reset was on 02-10.")
+        self.assertEqual(self.message(), "Last Codex usage reset was on 02-10.")
 
     def test_completed_supersedes_signal(self):
         self.signal(at="2026-10-01T12:00:00Z")
-        self.assertEqual(self.message(), "Last reset was on 02-10.")
+        self.assertEqual(self.message(), "Last Codex usage reset was on 02-10.")
 
     def test_unspecified_timing(self):
         self.signal(window=None)
-        self.assertEqual(self.message(), "Global reset announced on 04-10; timing unspecified.")
+        self.assertEqual(self.message(), "Global Codex usage reset announced on 04-10; timing unspecified.")
         self.signal()["window"]["label"] = "official hint — timing unspecified"
-        self.assertEqual(self.message(), "Global reset announced on 04-10; timing unspecified.")
+        self.assertEqual(self.message(), "Global Codex usage reset announced on 04-10; timing unspecified.")
 
     def test_inactive(self):
         self.signal(active=False)
-        self.assertEqual(self.message(), "Last reset was on 02-10.")
+        self.assertEqual(self.message(), "Last Codex usage reset was on 02-10.")
 
     def test_range(self):
         s = self.signal()
         s["window"].pop("target_at")
         s["window"]["start_at"] = "2026-10-04T21:00:00Z"
-        self.assertEqual(self.message(), "Global reset announced for 04-10 to 05-10 on 04-10.")
+        self.assertEqual(self.message(), "Global Codex usage reset announced for 04-10 to 05-10 on 04-10.")
 
     def test_berlin_midnight_and_dst(self):
         for raw, expected in [("2026-10-02T23:00:00Z", "03-10"),
@@ -86,11 +96,11 @@ class NoticeTests(unittest.TestCase):
             s["window"].pop("target_at")
             s["window"]["start_at"] = "2026-10-05T02:00:00Z"
             s["window"]["end_at"] = "2026-10-05T05:00:00Z"
-            self.assertEqual(self.message(), "Global reset announced for 04-10 to 05-10 on 03-10.")
+            self.assertEqual(self.message(), "Global Codex usage reset announced for 04-10 to 05-10 on 03-10.")
 
     def test_banked_and_probability_ignored(self):
         self.data.update(probabilities={"rounded_24h": 99}, banked_state="available")
-        self.assertEqual(self.message(), "Last reset was on 02-10.")
+        self.assertEqual(self.message(), "Last Codex usage reset was on 02-10.")
 
     def test_stale_and_unsupported(self):
         for data in [{}, [], {**self.data, "official_signal": "unknown"},
@@ -145,7 +155,7 @@ class RuntimeTests(unittest.TestCase):
             with patch.object(hook, "fetch", side_effect=slow_fetch) as fetch:
                 with ThreadPoolExecutor(max_workers=3) as pool:
                     messages = list(pool.map(lambda _: hook.get_notice(Path(root)), range(3)))
-                self.assertTrue(all("No reset planned" in message for message in messages))
+                self.assertTrue(all("No Codex usage reset planned" in message for message in messages))
                 self.assertEqual(fetch.call_count, 1)
 
     def test_cache_and_failure_cooldown(self):
@@ -155,8 +165,8 @@ class RuntimeTests(unittest.TestCase):
             entry = {"data": {"updated_at": now.isoformat(), "official_signal": None,
                               "last_reset_at": None}, "fetched_at": now.timestamp(), "retry_at": 0}
             with patch.object(hook, "fetch", return_value=entry) as fetch:
-                self.assertIn("No reset planned", hook.get_notice(folder))
-                self.assertIn("No reset planned", hook.get_notice(folder))
+                self.assertIn("No Codex usage reset planned", hook.get_notice(folder))
+                self.assertIn("No Codex usage reset planned", hook.get_notice(folder))
                 self.assertEqual(fetch.call_count, 1)
             (folder / "forecast.json").unlink()
             with patch.object(hook, "fetch", side_effect=TimeoutError) as fetch:
