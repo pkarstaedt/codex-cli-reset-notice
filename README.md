@@ -1,123 +1,134 @@
 # Codex CLI Reset Notice
 
-Uses the public [codex-reset.com API](https://codex-reset.com/developers) to show
-a single visible CLI notice on startup, resume, and `/clear`. Compaction does
-not trigger a notice. Dates use `dd-mm` and default to Europe/Berlin.
-Set `CODEX_RESET_TIMEZONE` to another IANA timezone to change it, for example
-`CODEX_RESET_TIMEZONE=America/New_York codex`. Invalid zones report unavailable.
+Get a short update about announced global Codex usage resets and resets completed
+within the last 72 hours. News comes from [codex-reset.com](https://codex-reset.com/).
+No API key, Python packages, or model calls are needed.
 
-Verified on Codex CLI 0.160.0: the startup hook runs and its visible notice
-appears when the session's first prompt is submitted, rather than while the
-empty prompt is waiting. The hook itself makes no model calls.
+## Install
 
-## Recommended installation: Codex plugin
-
-Requirements: a Codex CLI that supports lifecycle hooks and plugins (tested
-with 0.160.0), Python 3.9+, and Linux or macOS with system timezone data.
-Native Windows is not supported; use WSL. No Python packages or API key needed.
-
-Download the release ZIP, unzip it, and run these commands from its parent:
-
-```sh
-codex plugin marketplace add ./codex-cli-reset-notice
-codex plugin add codex-cli-reset-notice@codex-cli-reset-notices
-```
-
-Restart Codex and use `/hooks` to review and trust **only** the new reset hook.
-Make sure hooks are enabled (`[features] hooks = true` in Codex config).
-Plugin hooks use `${PLUGIN_ROOT}` so they work regardless of installation path.
-
-Once published to GitHub, users can install without downloading an archive:
+Run these two commands in your terminal, from any directory:
 
 ```sh
 codex plugin marketplace add pkarstaedt/codex-cli-reset-notice
 codex plugin add codex-cli-reset-notice@codex-cli-reset-notices
 ```
 
-The repository includes `.agents/plugins/marketplace.json` and the Codex compatibility
-`.codex-plugin/plugin.json` manifest. The plugin is available through that marketplace;
-this package has not been submitted to the public OpenAI directory.
+No cloning or ZIP download is required.
 
-To update from a Git marketplace, refresh it and reinstall the plugin:
+1. Start a new Codex session using your usual command, such as `codex` or `codex --yolo`.
+2. Run `/hooks` and select **SessionStart**.
+3. Select the hook whose command points to `codex-cli-reset-notice` and press **t** to trust it.
+4. Start another new session and submit your first prompt to see the notice.
+
+Requirements: Codex CLI with plugin and lifecycle-hook support (tested on
+0.160.0), Python 3.9+, and Linux or macOS with system timezone data. On Windows,
+use WSL.
+
+The hook runs on startup, resume, and `/clear`, and skips compaction. On Codex
+0.160.0, the startup notice appears when you submit the session's first prompt.
+
+## Update
+
+Refresh the marketplace and reinstall to get the latest version:
 
 ```sh
 codex plugin marketplace upgrade codex-cli-reset-notices
 codex plugin add codex-cli-reset-notice@codex-cli-reset-notices
 ```
 
-To uninstall the plugin:
+Start a new Codex session. Review the reset hook in `/hooks` if prompted.
+
+## Clean reinstall
 
 ```sh
 codex plugin remove codex-cli-reset-notice@codex-cli-reset-notices
+codex plugin marketplace remove codex-cli-reset-notices
+codex plugin marketplace add pkarstaedt/codex-cli-reset-notice
+codex plugin add codex-cli-reset-notice@codex-cli-reset-notices
 ```
 
-Use one installation method. If switching from the standalone hook below,
-first run `python3 install.py --remove` to prevent duplicate notices. Remove
-only this package's standalone hook; preserve other hooks.
+Then follow the trust steps under **Install**.
 
-## Alternative: standalone hook
-
-From the extracted package directory:
+## Remove
 
 ```sh
-python3 install.py
+codex plugin remove codex-cli-reset-notice@codex-cli-reset-notices
+codex plugin marketplace remove codex-cli-reset-notices
 ```
 
-Installation copies the script to `$CODEX_HOME/hooks/codex_reset.py` (default
-`~/.codex/hooks/codex_reset.py`) and appends a handler to `hooks.json`. Existing
-hooks are preserved and changes get a timestamped backup. Reinstalling is
-idempotent. Hooks must be enabled in Codex configuration.
+## Messages
 
-In Codex, open `/hooks`, select the reset hook, review its command, and trust it.
-This uses Codex's native trust workflow; the installer does not modify trust
-records. After trusting, restart or resume a session to see the notice.
-See [Codex hook documentation](https://learn.chatgpt.com/docs/hooks).
+| Case | Notice |
+| --- | --- |
+| Upcoming reset | `Global Codex usage reset announced for dd-mm on dd-mm. Source: https://codex-reset.com/` |
+| Upcoming reset spanning dates | `Global Codex usage reset announced for dd-mm to dd-mm on dd-mm. Source: https://codex-reset.com/` |
+| Announcement without timing | `Global Codex usage reset announced on dd-mm; timing unspecified. Source: https://codex-reset.com/` |
+| Last reset within 72 hours, none upcoming | `Last Codex usage reset was on dd-mm.` |
+| None upcoming or recently completed | `No Codex usage reset planned.` |
+| Failed or unavailable check | `Cannot get usage reset news from https://codex-reset.com` |
 
-Messages, in priority order:
-
-- `Global Codex usage reset announced for dd-mm on dd-mm.` An unexpired official window
-  newer than the last completed reset; windows spanning local dates show a range.
-- `Global Codex usage reset announced on dd-mm; timing unspecified.` An official signal
-  with no usable timing.
-- `Last Codex usage reset was on dd-mm.` The latest reset was within the previous 72 hours.
-- `No Codex usage reset planned.` No current official signal or recent completed reset.
-- `Cannot get usage reset news from https://codex-reset.com` Network failure, stale data, or unsupported payload.
-
-Only upcoming announcement notices append the source URL. Forecast probabilities, hints,
-banked resets, and personal account quotas do not affect the message. An expired
-announcement does not establish that a reset completed. All classification
-comes from the independent tracker; there is no OpenAI account access or LLM call.
-
-The script uses Python 3.9+ on Linux or macOS with system timezone data and no packages.
-It sends an identifying User-Agent, reads only `GET /api/forecast`, and uses a
-locked cache at `$XDG_CACHE_HOME/codex-reset-session-hook` (default `~/.cache/...`).
-Requests are limited to once per minute, including after failures; HTTP 429
-respects Retry-After. A contending session waits at most 0.4 seconds for the cache
-lock. Network I/O has a 3-second timeout; Codex limits the hook to 5 seconds.
-Failures return a notice and exit successfully so sessions can continue.
-
-Manual check:
+For upcoming resets, the final “on dd-mm” is the announcement date. Dates default
+to Europe/Berlin. To use another timezone, set `CODEX_RESET_TIMEZONE`:
 
 ```sh
-echo '{"hook_event_name":"SessionStart","source":"startup"}' | python3 codex_reset.py
+CODEX_RESET_TIMEZONE=America/New_York codex
 ```
 
-Remove only this hook:
+Forecast probabilities, hints, banked reset grants, and personal account quotas
+are excluded. An expired announcement does not establish that a reset completed.
+
+## Troubleshooting
+
+**Hook missing from `/hooks`:** update first. Version 0.1.0 installed but did not
+expose hooks on Codex 0.160.0; this was fixed in 0.1.1. If it is still missing,
+try `codex --no-daemon` for a fresh process, then inspect `/hooks` again.
+`--no-daemon` is optional troubleshooting, not a requirement of this plugin.
+
+**Hooks disabled:** check whether your Codex configuration disables hooks.
+Enable them with `hooks = true` under the existing `[features]` table in
+`~/.codex/config.toml`, preserving other settings.
+
+**Duplicate notices:** if you previously installed the standalone hook, remove
+it with `python3 install.py --remove` from its source directory. Use one
+installation method.
+
+## Alternative installation
+
+<details>
+<summary>ZIP or standalone installation</summary>
+
+Download and extract a ZIP from [Releases](https://github.com/pkarstaedt/codex-cli-reset-notice/releases).
+To install it as a local marketplace, run from the extracted directory's parent:
 
 ```sh
-python3 install.py --remove
+codex plugin marketplace add ./codex-cli-reset-notice
+codex plugin add codex-cli-reset-notice@codex-cli-reset-notices
 ```
 
-Removal preserves all other hooks. The cache can optionally be deleted separately.
+Follow the trust steps under **Install**. Keep the extracted directory available
+for later refreshes. Git marketplace upgrades apply to Git installs; to update a
+local ZIP install, extract the new release and reinstall from that local source.
 
+Alternatively, run `python3 install.py` from the extracted package to install a
+standalone user hook. It copies the script to `$CODEX_HOME/hooks/codex_reset.py`
+(default `~/.codex/hooks/codex_reset.py`) and adds a handler to `hooks.json`,
+preserving other hooks and backing up configuration changes. Trust it through
+`/hooks`. Remove it with `python3 install.py --remove`.
 
-## Distribution and development
+</details>
 
-Publish the source directory as a Git repository, or share the generated ZIP.
-The license is MIT; third-party reset data remains subject to the
-[API provider's terms](https://codex-reset.com/developers). Upcoming announcement notices include credit
-and requests identify the project. Network traffic contains no session input,
-account data, or credentials; it is a GET to the forecast endpoint.
+## Data and development
+
+The hook reads only the public `GET /api/forecast` endpoint and identifies itself
+with a User-Agent. It sends no account credentials or session input. It caches
+responses for 60 seconds, respects HTTP 429 Retry-After, and reports unavailable
+status when checks fail. The cache lives under
+`$XDG_CACHE_HOME/codex-reset-session-hook` (default `~/.cache/...`).
+
+The code is MIT-licensed; reset data remains subject to the
+[provider's terms](https://codex-reset.com/developers).
+
+From a source checkout:
 
 ```sh
 python3 -m unittest -v
@@ -125,34 +136,10 @@ python3 verify_plugin.py
 python3 build_release.py
 ```
 
-This creates `dist/codex-cli-reset-notice-0.1.2.zip` and its SHA-256 file. The archive
-contains a single plugin directory, source, tests, marketplace, instructions,
-and license. It excludes caches, local installations, trust records, and secrets.
-The allowlisted build is reproducible. Bump `.codex-plugin/plugin.json`'s version for releases.
-
-A local marketplace installation copies the package into Codex's plugin cache.
-To distribute changes, build a new archive (or push the source repo), refresh
-its marketplace, and reinstall. An extracted local marketplace source should
-remain available for later refreshes.
+The release builder creates a ZIP and SHA-256 checksum under `dist/`, using the
+version in `.codex-plugin/plugin.json`. It excludes caches, local installations,
+trust records, and secrets. Native verification checks that Codex discovers the
+SessionStart hook and marks it as awaiting trust.
 
 Official references: [plugin packaging](https://developers.openai.com/plugins/build/plugins)
 and [hook behavior and trust](https://learn.chatgpt.com/docs/hooks).
-
-
-## Hook missing from /hooks on 0.1.0
-
-Version 0.1.0 used the portable manifest. Codex CLI 0.160.0 installs that format
-but does not discover this package's hooks. Version 0.1.1 uses the supported
-Codex compatibility manifest and is verified through the `hooks/list` API.
-
-Upgrade the marketplace and reinstall:
-
-```sh
-codex plugin marketplace upgrade codex-cli-reset-notices
-codex plugin add codex-cli-reset-notice@codex-cli-reset-notices
-codex --no-daemon --yolo
-```
-
-Then open `/hooks`, select SessionStart, and trust the reset hook. The
-`--no-daemon` flag ensures the new session uses fresh plugin configuration
-without interrupting other tasks in an existing daemon.
