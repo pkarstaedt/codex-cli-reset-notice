@@ -4,6 +4,8 @@ Get a short update about announced global Codex usage resets and resets complete
 within the last 72 hours. News comes from [codex-reset.com](https://codex-reset.com/).
 No API key, Python packages, or model calls are needed.
 
+![Codex CLI showing the session-start hook notice: No Codex usage reset planned.](codex-hook-resets.jpg)
+
 ## Install
 
 Run these two commands in your terminal, from any directory:
